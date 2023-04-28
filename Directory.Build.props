@@ -1,0 +1,24 @@
+<Project>
+	<PropertyGroup>
+		
+		<Authors>Michael W. Olesen</Authors>
+		<Company>mwo</Company>
+		<Product>SFX.EventAggregation</Product>
+		<Description>Various common utilities</Description>
+		<Copyright>Copyright © 2023 mwo</Copyright>
+		<PackageIcon>dingir.png</PackageIcon>
+		<BuildNumber>0.1.0</BuildNumber>
+		<Version>$(BuildNumber).0</Version>
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+		<FileVersion>$(Version)</FileVersion>
+		<ProductVersion>$(BuildNumber)</ProductVersion>
+		<PackageVersion>$(BuildNumber)</PackageVersion>
+		<!--<PackageLicenseExpression>MIT</PackageLicenseExpression>-->
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\..\dingir.png" Pack="true" PackagePath="\"/>
+	</ItemGroup>
+</Project>

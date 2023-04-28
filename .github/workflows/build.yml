@@ -1,0 +1,20 @@
+name: Build Common
+
+on:  
+    push:
+        branches-ignore:
+            - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 7.0.203 
+    - name: Test
+      run: dotnet test ./event-aggregation.sln --configuration Release 

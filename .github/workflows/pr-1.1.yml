@@ -1,0 +1,35 @@
+name: Pull Request Common
+
+on:  pull_request
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 7.0.203
+    - name: Output Run ID
+      run: echo ${{ github.run_id }}
+    - name: Output Run Number
+      run: echo ${{ github.run_number }}
+    - name: Output Run Attempt
+      run: echo ${{ github.run_attempt }}
+    - name: Set BuildNumber based on repo
+      run: |
+        BuildNumber=4.2.${{ github.run_number }}
+        echo "Adding BuildNumber to GITHUB_ENV: BuildNumber=$BuildNumber"
+        echo "BuildNumber=$BuildNumber" >> $GITHUB_ENV
+    - name: Test
+      run: dotnet test ./event-aggregation.sln --configuration Release 
+    - name: Build NuGet Packages
+      run: dotnet pack ./event-aggregation/event-aggregation.fsproj --configuration Release -p:BuildNumber=${{ env.BuildNumber }} -o ./nuget
+    - name: Deploy NuGet Packages
+      run: |
+        dotnet nuget push /home/runner/work/event-aggregation/event-aggregation/nuget/ssndk.*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
