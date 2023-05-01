@@ -96,7 +96,8 @@ type EventAggregator<'a>() =
             let unsubscribe() =
                 let success, (_, actionBlock) = 
                     subscriptions.TryRemove(subscriptionId)
-                actionBlock.Complete()
+                if success && actionBlock |> isNull |> not then
+                    actionBlock.Complete()
                 success
             let subscription = new Subscription(unsubscribe)
             let actionBlock = createActionBlock subscriber unsubscribe synchronizationContext serializeNotification
@@ -113,7 +114,8 @@ type EventAggregator<'a>() =
             let unsubscribe() =
                 let success, (_, actionBlock) = 
                     subscriptions.TryRemove(subscriptionId)
-                actionBlock.Complete()
+                if success && actionBlock |> isNull |> not then
+                    actionBlock.Complete()
                 success
             let subscription = new Subscription(unsubscribe)
             let actionBlock = createAsyncActionBlock subscriber unsubscribe synchronizationContext serializeNotification

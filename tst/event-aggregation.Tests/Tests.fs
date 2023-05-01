@@ -41,24 +41,32 @@ type SingleMessageAsyncSubscriber() =
             Task.CompletedTask
 
 [<Sealed>]
-type SyncSubscriber() =
+type SyncSubscriber(count) =
+    let event = new ManualResetEvent(false)
     let mutable receivedValues = []
 
+    member _.Event = event
     member _.ReceivedValues = receivedValues |> List.rev
 
     interface IHandle<int> with
         member _.Handle(message) = 
             receivedValues <- message::receivedValues
+            if count = (receivedValues |> List.length) then
+                event.Set() |> ignore
 
 [<Sealed>]
-type AsyncSubscriber() =
+type AsyncSubscriber(count) =
+    let event = new ManualResetEvent(false)
     let mutable receivedValues = []
 
+    member _.Event = event
     member _.ReceivedValues = receivedValues |> List.rev
 
     interface IHandleAsync<int> with
         member _.HandleAsync(message) = 
             receivedValues <- message::receivedValues
+            if count = (receivedValues |> List.length) then
+                event.Set() |> ignore
             Task.CompletedTask
 
 type IAction =
@@ -66,9 +74,6 @@ type IAction =
 
 [<Trait("Category", "Unit")>]
 module Tests =
-    
-    [<Literal>]
-    let WaitTime = 100
 
     [<Fact>]
     let ``Subscription is initially not disposed``() =
@@ -148,11 +153,11 @@ module Tests =
     let ``Publish multiple messages to sync subscriber works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
         let sut : IEventAggregator<int> = createEventAggregator()
-        let subscriber = SyncSubscriber()
+        let subscriber = SyncSubscriber(messages.Length)
         use _ = sut.Subscribe(subscriber, Unchecked.defaultof<SynchronizationContext>, false)
 
         messages |> Array.iter (fun message -> sut.Publish(message))
-        System.Threading.Tasks.Task.Delay(WaitTime).Wait() // Not beautiful. Could fail
+        subscriber.Event.WaitOne() |> ignore
 
         messages |> Array.fold (fun ok message -> ok && subscriber.ReceivedValues |> List.contains(message)) true
 
@@ -160,11 +165,11 @@ module Tests =
     let ``Publish multiple messages to async subscriber works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
         let sut : IEventAggregator<int> = createEventAggregator()
-        let subscriber = AsyncSubscriber()
+        let subscriber = AsyncSubscriber(messages.Length)
         use _ = sut.SubscribeAsync(subscriber, Unchecked.defaultof<SynchronizationContext>, false)
 
         messages |> Array.iter (fun message -> sut.Publish(message))
-        System.Threading.Tasks.Task.Delay(WaitTime).Wait() // Not beautiful. Could fail
+        subscriber.Event.WaitOne() |> ignore
 
         messages |> Array.fold (fun ok message -> ok && subscriber.ReceivedValues |> List.contains(message)) true
 
@@ -172,11 +177,11 @@ module Tests =
     let ``Publish multiple messages to sync subscriber with serialization works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
         let sut : IEventAggregator<int> = createEventAggregator()
-        let subscriber = SyncSubscriber()
+        let subscriber = SyncSubscriber(messages.Length)
         use _ = sut.Subscribe(subscriber, Unchecked.defaultof<SynchronizationContext>, true)
 
         messages |> Array.iter (fun message -> sut.Publish(message))
-        System.Threading.Tasks.Task.Delay(WaitTime).Wait() // Not beautiful. Could fail
+        subscriber.Event.WaitOne() |> ignore
 
         let receivedValues = subscriber.ReceivedValues |> List.toArray
         (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
@@ -185,11 +190,11 @@ module Tests =
     let ``Publish multiple messages to async subscriber with serialization works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
         let sut : IEventAggregator<int> = createEventAggregator()
-        let subscriber = AsyncSubscriber()
+        let subscriber = AsyncSubscriber(messages.Length)
         use _ = sut.SubscribeAsync(subscriber, Unchecked.defaultof<SynchronizationContext>, true)
 
         messages |> Array.iter (fun message -> sut.Publish(message))
-        System.Threading.Tasks.Task.Delay(WaitTime).Wait() // Not beautiful. Could fail
+        subscriber.Event.WaitOne() |> ignore
 
         let receivedValues = subscriber.ReceivedValues |> List.toArray
         (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
@@ -627,7 +632,7 @@ module Tests =
 
     [<Property>]
     let ``publish single message single message to sync subscriber works``(message) =
-        let sut : IEventAggregator<int> = createEventAggregator()
+        use sut : IEventAggregator<int> = createEventAggregator()
         let mutable receivedValue = 0
         use event = new ManualResetEvent(false)
         let subscriber message =
@@ -644,7 +649,7 @@ module Tests =
 
     [<Property>]
     let ``publish single message to classic async subscriber works``(message) =
-        let sut : IEventAggregator<int> = createEventAggregator()
+        use sut : IEventAggregator<int> = createEventAggregator()
         let mutable receivedValue = 0
         use event = new ManualResetEvent(false)
         let subscriber message = 
@@ -662,7 +667,7 @@ module Tests =
 
     [<Property>]
     let ``publish single message to task computational expression subscriber works``(message) =
-        let sut : IEventAggregator<int> = createEventAggregator()
+        use sut : IEventAggregator<int> = createEventAggregator()
         let mutable receivedValue = 0
         use event = new ManualResetEvent(false)
         let subscriber message = 
@@ -681,7 +686,7 @@ module Tests =
 
     [<Property>]
     let ``publish single message to async subscriber works``(message) =
-        let sut : IEventAggregator<int> = createEventAggregator()
+        use sut : IEventAggregator<int> = createEventAggregator()
         let mutable receivedValue = 0
         use event = new ManualResetEvent(false)
         let subscriber message = 
@@ -701,77 +706,81 @@ module Tests =
     [<Property>]
     let ``publish multiple messages single message to sync subscriber works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
-        let sut : IEventAggregator<int> = createEventAggregator()
+        use sut : IEventAggregator<int> = createEventAggregator()
         let mutable receivedValues : int list= []
         use event = new ManualResetEvent(false)
         let subscriber message =
             receivedValues <- message::receivedValues
-            event.Set() |> ignore
+            if (messages.Length) = (receivedValues |> List.length) then 
+                event.Set() |> ignore
         let subscriber : Subscriber<int> = subscriber
         let subscriber : Arg<int> = subscriber
         use _ = sut |> subscribe subscriber
 
         messages |> Array.iter (fun message -> sut.Publish(message))
-        System.Threading.Tasks.Task.Delay(WaitTime).Wait() // Not beautiful. Could fail
+        event.WaitOne() |> ignore
 
         messages |> Array.fold (fun ok message -> ok && receivedValues |> List.contains(message)) true
 
     [<Property>]
     let ``publish multiple messages to classic async subscriber works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
-        let sut : IEventAggregator<int> = createEventAggregator()
+        use sut : IEventAggregator<int> = createEventAggregator()
         let mutable receivedValues : int list= []
         use event = new ManualResetEvent(false)
         let subscriber message = 
             receivedValues <- message::receivedValues
-            event.Set() |> ignore
+            if (messages.Length) = (receivedValues |> List.length) then 
+                event.Set() |> ignore
             Task.CompletedTask
         let subscriber : Subscriber<int> = subscriber
         let subscriber : Arg<int> = subscriber
         use _ = sut |> subscribe subscriber
 
         messages |> Array.iter (fun message -> sut.Publish(message))
-        System.Threading.Tasks.Task.Delay(WaitTime).Wait() // Not beautiful. Could fail
+        event.WaitOne() |> ignore
 
         messages |> Array.fold (fun ok message -> ok && receivedValues |> List.contains(message)) true
 
     [<Property>]
     let ``publish multiple messages to task computational expression subscriber works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
-        let sut : IEventAggregator<int> = createEventAggregator()
+        use sut : IEventAggregator<int> = createEventAggregator()
         let mutable receivedValues : int list= []
         use event = new ManualResetEvent(false)
         let subscriber message = 
             task {
                 receivedValues <- message::receivedValues
-                event.Set() |> ignore
+                if (messages.Length) = (receivedValues |> List.length) then 
+                    event.Set() |> ignore
             }
         let subscriber : Subscriber<int> = subscriber
         let subscriber : Arg<int> = subscriber
         use _ = sut |> subscribe subscriber
 
         messages |> Array.iter (fun message -> sut.Publish(message))
-        System.Threading.Tasks.Task.Delay(WaitTime).Wait() // Not beautiful. Could fail
+        event.WaitOne() |> ignore
 
         messages |> Array.fold (fun ok message -> ok && receivedValues |> List.contains(message)) true
 
     [<Property>]
     let ``publish multiple messages to async subscriber works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
-        let sut : IEventAggregator<int> = createEventAggregator()
+        use sut : IEventAggregator<int> = createEventAggregator()
         let mutable receivedValues : int list= []
         use event = new ManualResetEvent(false)
         let subscriber message = 
             async {
                 receivedValues <- message::receivedValues
-                event.Set() |> ignore
+                if (messages.Length) = (receivedValues |> List.length) then 
+                    event.Set() |> ignore
             }
         let subscriber : Subscriber<int> = subscriber
         let subscriber : Arg<int> = subscriber
         use _ = sut |> subscribe subscriber
 
         messages |> Array.iter (fun message -> sut.Publish(message))
-        System.Threading.Tasks.Task.Delay(WaitTime).Wait() // Not beautiful. Could fail
+        event.WaitOne() |> ignore
 
         messages |> Array.fold (fun ok message -> ok && receivedValues |> List.contains(message)) true
 
@@ -779,19 +788,20 @@ module Tests =
     [<Property>]
     let ``publish multiple messages single message to sync subscriber with serialization works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
-        let sut : IEventAggregator<int> = createEventAggregator()
+        use sut : IEventAggregator<int> = createEventAggregator()
         let mutable receivedValues : int list= []
         use event = new ManualResetEvent(false)
         let subscriber message =
             receivedValues <- message::receivedValues
-            event.Set() |> ignore
+            if (messages.Length) = (receivedValues |> List.length) then 
+                event.Set() |> ignore
         let subscriber : Subscriber<int> = subscriber
         let subscriber : Arg<int> = subscriber
         let subscriber = subscriber |> withSerializationOfNotifications true
         use _ = sut |> subscribe subscriber
 
         messages |> Array.iter (fun message -> sut.Publish(message))
-        System.Threading.Tasks.Task.Delay(WaitTime).Wait() // Not beautiful. Could fail
+        event.WaitOne() |> ignore
 
         let receivedValues = receivedValues |> List.rev |> List.toArray
         (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
@@ -799,12 +809,13 @@ module Tests =
     [<Property>]
     let ``publish multiple messages to classic async subscriber with serialization works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
-        let sut : IEventAggregator<int> = createEventAggregator()
+        use sut : IEventAggregator<int> = createEventAggregator()
         let mutable receivedValues : int list= []
         use event = new ManualResetEvent(false)
         let subscriber message = 
             receivedValues <- message::receivedValues
-            event.Set() |> ignore
+            if (messages.Length) = (receivedValues |> List.length) then 
+                event.Set() |> ignore
             Task.CompletedTask
         let subscriber : Subscriber<int> = subscriber
         let subscriber : Arg<int> = subscriber
@@ -812,7 +823,7 @@ module Tests =
         use _ = sut |> subscribe subscriber
 
         messages |> Array.iter (fun message -> sut.Publish(message))
-        System.Threading.Tasks.Task.Delay(WaitTime).Wait() // Not beautiful. Could fail
+        event.WaitOne() |> ignore
 
         let receivedValues = receivedValues |> List.rev |> List.toArray
         (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
@@ -820,13 +831,14 @@ module Tests =
     [<Property>]
     let ``publish multiple messages to task computational expression subscriber with serialization works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
-        let sut : IEventAggregator<int> = createEventAggregator()
+        use sut : IEventAggregator<int> = createEventAggregator()
         let mutable receivedValues : int list= []
         use event = new ManualResetEvent(false)
         let subscriber message = 
             task {
                 receivedValues <- message::receivedValues
-                event.Set() |> ignore
+                if (messages.Length) = (receivedValues |> List.length) then 
+                    event.Set() |> ignore
             }
         let subscriber : Subscriber<int> = subscriber
         let subscriber : Arg<int> = subscriber
@@ -834,7 +846,7 @@ module Tests =
         use _ = sut |> subscribe subscriber
 
         messages |> Array.iter (fun message -> sut.Publish(message))
-        System.Threading.Tasks.Task.Delay(WaitTime).Wait() // Not beautiful. Could fail
+        event.WaitOne() |> ignore
 
         let receivedValues = receivedValues |> List.rev |> List.toArray
         (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
@@ -842,13 +854,14 @@ module Tests =
     [<Property>]
     let ``publish multiple messages to async subscriber with serialization works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
-        let sut : IEventAggregator<int> = createEventAggregator()
+        use sut : IEventAggregator<int> = createEventAggregator()
         let mutable receivedValues : int list= []
         use event = new ManualResetEvent(false)
         let subscriber message = 
             async {
                 receivedValues <- message::receivedValues
-                event.Set() |> ignore
+                if (messages.Length) = (receivedValues |> List.length) then 
+                    event.Set() |> ignore
             }
         let subscriber : Subscriber<int> = subscriber
         let subscriber : Arg<int> = subscriber
@@ -856,7 +869,7 @@ module Tests =
         use _ = sut |> subscribe subscriber
 
         messages |> Array.iter (fun message -> sut.Publish(message))
-        System.Threading.Tasks.Task.Delay(WaitTime).Wait() // Not beautiful. Could fail
+        event.WaitOne() |> ignore
 
         let receivedValues = receivedValues |> List.rev |> List.toArray
         (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
