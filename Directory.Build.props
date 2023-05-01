@@ -7,6 +7,8 @@
 		<Description>Various common utilities</Description>
 		<Copyright>Copyright © 2023 mwo</Copyright>
 		<PackageIcon>dingir.png</PackageIcon>
+		<PackageProjectUrl>https://github.com/mwo-dk/event-aggregation</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/mwo-dk/event-aggregation</RepositoryUrl>
 		<BuildNumber>0.1.0</BuildNumber>
 		<Version>$(BuildNumber).0</Version>
 		<AssemblyVersion>$(Version)</AssemblyVersion>

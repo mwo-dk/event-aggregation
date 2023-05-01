@@ -8,7 +8,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".solution", ".solution", "{
 		.github\workflows\build.yml = .github\workflows\build.yml
 		clean.ps1 = clean.ps1
 		Directory.Build.props = Directory.Build.props
-		.github\workflows\pr-1.1.yml = .github\workflows\pr-1.1.yml
+		.github\workflows\pr-2.0.yml = .github\workflows\pr-2.0.yml
+		README.CS.md = README.CS.md
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -41,5 +42,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{F8006ACA-10B7-4389-9C6D-41324F0F64ED} = {8A52021C-4BC9-4202-99E0-06A875B8EB6E}
 		{2BEA571C-EAC7-49F9-9B03-47EFC5A7E8F1} = {D10E7E68-E4B2-4719-8B04-8DB721F69894}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2A3FB6D7-14D6-4343-9CDC-030F907E43F8}
 	EndGlobalSection
 EndGlobal
