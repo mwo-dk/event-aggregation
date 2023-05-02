@@ -3,12 +3,7 @@
 open System
 open System.Linq.Expressions
 open Microsoft.FSharp.Linq.RuntimeHelpers
-open System.Threading
-open System.Threading.Tasks
-open type System.Threading.Interlocked
 open Xunit
-open FsCheck
-open FsCheck.Xunit
 open Moq
 open SFX.EventAggregation
 

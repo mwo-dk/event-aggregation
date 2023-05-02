@@ -37,14 +37,12 @@ class IHandleAsync {
 class IEventAggregator {
     Subscribe(subscriber: IHandle, synchronizationContext: SynchronizationContext, serializeNotification: bool) : IDisposable
     SubscribeAsync(subscriber: IHandleAsync, synchronizationContext: SynchronizationContext, serializeNotification: bool) : IDisposable
-    Unsubscribe(subscription)
     Publish(message: T)
 }
 
 class EventAggregator {
     Subscribe(subscriber: IHandle, synchronizationContext: SynchronizationContext, serializeNotification: bool) : Subscription
     SubscribeAsync(subscriber: IHandleAsync, synchronizationContext: SynchronizationContext, serializeNotification: bool) : Subscription
-    Unsubscribe(subscription)
     Publish(message: T)
     Finalize()
 }

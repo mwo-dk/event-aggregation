@@ -5,10 +5,7 @@ open System.Linq.Expressions
 open Microsoft.FSharp.Linq.RuntimeHelpers
 open System.Threading
 open System.Threading.Tasks
-open type System.Threading.Interlocked
 open Xunit
-open FsCheck
-open FsCheck.Xunit
 open Moq
 open SFX.EventAggregation
 
@@ -200,24 +197,6 @@ module SubscribeTests =
             LeafExpressionConverter.QuotationToExpression |>
             unbox<Expression<Func<IEventAggregator<int>, IDisposable>>>
         try
-            mock.Verify(quotation, Times.Once)
-            Assert.True(true)
-        with
-        | _ -> Assert.True(false)
-
-    [<Fact>]
-    let ``unsubscribe simply disposes``() =
-        let mock = Mock<IDisposable>()
-
-        let sut = mock.Object
-        unsubscribe sut
-
-        let quotation =
-            <@ Action<IDisposable>(
-                fun (x: IDisposable) -> x.Dispose()) @> |>
-            LeafExpressionConverter.QuotationToExpression |>
-            unbox<Expression<Action<IDisposable>>>
-        try 
             mock.Verify(quotation, Times.Once)
             Assert.True(true)
         with
