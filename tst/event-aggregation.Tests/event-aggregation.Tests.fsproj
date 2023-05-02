@@ -15,11 +15,17 @@
 		<Content Include="xunit.runner.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
-		<Compile Include="Tests.fs" />
+		<Compile Include="Helpers.fs" />
+		<Compile Include="SubscriptionTests.fs" />
+		<Compile Include="EventAggregatorTests.fs" />
+		<Compile Include="ConversionTests.fs" />
+		<Compile Include="ToHandleTests.fs" />
+		<Compile Include="SimplifyTests.fs" />
+		<Compile Include="ArgTests.fs" />
+		<Compile Include="SubscribeTests.fs" />
+		<Compile Include="PublishTests.fs" />
 		<Compile Include="Program.fs" />
 	</ItemGroup>
-
-	<ItemGroup />
 
 	<ItemGroup>
 		<PackageReference Include="FsCheck.Xunit" Version="2.16.5" />
