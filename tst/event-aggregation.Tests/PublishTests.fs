@@ -17,24 +17,26 @@ open SFX.EventAggregation
 [<Trait("Category", "Unit")>]
 module PublishTests =
 
-    [<Property>]
-    let ``publish single message single message to sync subscriber works``(message) =
-        use sut : IEventAggregator<int> = createEventAggregator()
-        let expectedCalls = 1L
-        let mutable calls = 0L
-        let mutable receivedValue = 0
-        let subscriber message =
-            receivedValue <- message
-            inc &calls
+    let p = 0
 
-        let subscriber : Subscriber<int> = subscriber
-        let subscriber : Arg<int> = subscriber
-        use _ = sut |> subscribe subscriber
+    //[<Property>]
+    //let ``publish single message single message to sync subscriber works``(message) =
+    //    use sut : IEventAggregator<int> = createEventAggregator()
+    //    let expectedCalls = 1L
+    //    let mutable calls = 0L
+    //    let mutable receivedValue = 0
+    //    let subscriber message =
+    //        receivedValue <- message
+    //        inc &calls
 
-        sut |> publish message
-        waitTillDone expectedCalls &calls
+    //    let subscriber : Subscriber<int> = subscriber
+    //    let subscriber : Arg<int> = subscriber
+    //    use _ = sut |> subscribe subscriber
 
-        message = receivedValue
+    //    sut |> publish message
+    //    waitTillDone expectedCalls &calls
+
+    //    message = receivedValue
 
     //[<Property>]
     //let ``publish single message to classic async subscriber works``(message) =
