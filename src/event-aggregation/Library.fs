@@ -19,17 +19,15 @@ type IEventAggregator<'a> =
     inherit IDisposable
     abstract member Subscribe : IHandle<'a>*SynchronizationContext*bool -> IDisposable
     abstract member SubscribeAsync : IHandleAsync<'a>*SynchronizationContext*bool -> IDisposable
-    abstract member Unsubscribe : IDisposable -> unit
     abstract member Publish : 'a -> unit
 
 type Subscription(unsubscribe: unit -> bool) =
-    let mutable isDisposed = false
+    let mutable disposeCount = 0L
 
-    member _.IsDisposed = isDisposed
-    member private _.CleanUp() =
-        if not isDisposed then
+    member _.IsDisposed = 0L < Read(&disposeCount)
+    member inline private _.CleanUp() =
+        if 1L = Increment(&disposeCount) then
             unsubscribe() |> ignore
-            isDisposed <- true
     override x.Finalize() = x.CleanUp()
     interface IDisposable with
         member x.Dispose() = 
@@ -37,9 +35,11 @@ type Subscription(unsubscribe: unit -> bool) =
             GC.SuppressFinalize(x)
 
 type EventAggregator<'a>() =
-    let mutable isDisposed = false
+    let mutable disposeCount = 0L
     let mutable newSubscription = 0L
-    let subscriptions = ConcurrentDictionary<SubscriptionId, Subscription*ActionBlock<'a>>()
+    let subscriptions = ConcurrentDictionary<SubscriptionId, ActionBlock<'a>>()
+
+    let isDisposed() = 0L < Read(&disposeCount)
 
     let createActionBlock (subscriber: IHandle<'a>) 
         unsubscribe
@@ -53,9 +53,7 @@ type EventAggregator<'a>() =
         ActionBlock<'a>(fun message ->
             let doPublish(_: obj) =
                 try
-                    if isNull reference.Target then
-                        unsubscribe() |> ignore
-                    else
+                    if not (isNull reference.Target) then
                         (reference.Target :?> IHandle<'a>).Handle(message)
                 with
                 | _ -> ()
@@ -75,9 +73,7 @@ type EventAggregator<'a>() =
         ActionBlock<'a>(fun message ->
             let doPublish(_: obj) =
                 try
-                    if isNull reference.Target then
-                        unsubscribe() |> ignore
-                    else
+                    if not (isNull reference.Target) then
                         (reference.Target :?> IHandleAsync<'a>).HandleAsync(message) |> 
                         Async.AwaitTask |> 
                         Async.RunSynchronously
@@ -90,11 +86,11 @@ type EventAggregator<'a>() =
 
     interface IEventAggregator<'a> with
         member _.Subscribe(subscriber: IHandle<'a>, synchronizationContext: SynchronizationContext, serializeNotification: bool) = 
-            if isDisposed then
+            if isDisposed() then
                 raise (ObjectDisposedException(typeof<IEventAggregator<'a>>.FullName))
-            let subscriptionId = Increment(ref newSubscription)
+            let subscriptionId = Increment(&newSubscription)
             let unsubscribe() =
-                let success, (_, actionBlock) = 
+                let success, actionBlock = 
                     subscriptions.TryRemove(subscriptionId)
                 if success && actionBlock |> isNull |> not then
                     actionBlock.Complete()
@@ -102,17 +98,17 @@ type EventAggregator<'a>() =
             let subscription = new Subscription(unsubscribe)
             let actionBlock = createActionBlock subscriber unsubscribe synchronizationContext serializeNotification
             let subscribed =
-                subscriptions.TryAdd(subscriptionId, (subscription, actionBlock))
+                subscriptions.TryAdd(subscriptionId, actionBlock)
             if not subscribed then
                 raise (InvalidOperationException("Subscription failed"))
             subscription
 
         member _.SubscribeAsync(subscriber: IHandleAsync<'a>, synchronizationContext: SynchronizationContext, serializeNotification: bool) = 
-            if isDisposed then
+            if isDisposed() then
                 raise (ObjectDisposedException(typeof<IEventAggregator<'a>>.FullName))
-            let subscriptionId = Increment(ref newSubscription)
+            let subscriptionId = Increment(&newSubscription)
             let unsubscribe() =
-                let success, (_, actionBlock) = 
+                let success, actionBlock = 
                     subscriptions.TryRemove(subscriptionId)
                 if success && actionBlock |> isNull |> not then
                     actionBlock.Complete()
@@ -120,33 +116,19 @@ type EventAggregator<'a>() =
             let subscription = new Subscription(unsubscribe)
             let actionBlock = createAsyncActionBlock subscriber unsubscribe synchronizationContext serializeNotification
             let subscribed =
-                subscriptions.TryAdd(subscriptionId, (subscription, actionBlock))
+                subscriptions.TryAdd(subscriptionId, actionBlock)
             if not subscribed then
                 raise (InvalidOperationException("Subscription failed"))
             subscription
 
-        member _.Unsubscribe(subscription) = 
-            if isDisposed then
-                raise (ObjectDisposedException(typeof<IEventAggregator<'a>>.FullName))
-            if isNull subscription then
-                raise (ArgumentNullException(nameof subscription))
-            subscription.Dispose()
-
         member _.Publish(message) =
-            if isDisposed then
+            if isDisposed() then
                 raise (ObjectDisposedException(typeof<IEventAggregator<'a>>.FullName))
             let subscribers = subscriptions.Values
             subscribers |> 
-                Seq.iter (fun (subscription, handler) -> 
-                    if not subscription.IsDisposed then handler.Post(message) |> ignore)
+                Seq.iter (fun handler -> handler.Post(message) |> ignore)
 
-    member private _.CleanUp() = 
-        if not isDisposed then
-            isDisposed <- true 
-            let subscribers = subscriptions.Values
-            subscribers |> 
-                Seq.iter (fun (subscription, _) -> 
-                    if not subscription.IsDisposed then (subscription :> IDisposable).Dispose())
+    member inline private _.CleanUp() = ()
             
     override x.Finalize() = x.CleanUp()
     interface IDisposable with
@@ -246,8 +228,6 @@ module Impl =
             match subscriber |> toHandle with
             | H x -> eventAggregator.Subscribe(x, synchronizationContext, serializeNotification)
             | HA x -> eventAggregator.SubscribeAsync(x, synchronizationContext, serializeNotification)
-
-    let unsubscribe (subscription: IDisposable) = subscription.Dispose()
 
     let publish message (eventAggregator: IEventAggregator<'a>) =
         eventAggregator.Publish(message)

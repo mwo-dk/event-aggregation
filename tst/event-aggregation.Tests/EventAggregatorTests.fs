@@ -1,15 +1,9 @@
 ﻿namespace SFX.EventAggregation.Tests
 
-open System
-open System.Linq.Expressions
-open Microsoft.FSharp.Linq.RuntimeHelpers
 open System.Threading
-open System.Threading.Tasks
-open type System.Threading.Interlocked
 open Xunit
 open FsCheck
 open FsCheck.Xunit
-open Moq
 open SFX.EventAggregation
 
 #nowarn "3391"
@@ -88,4 +82,3 @@ module EventAggregatorTests =
 
         let receivedValues = subscriber.ReceivedValues |> List.toArray
         (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
-
