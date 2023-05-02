@@ -129,11 +129,6 @@ type EventAggregator<'a>() =
                 Seq.iter (fun handler -> handler.Post(message) |> ignore)
 
     member inline private _.CleanUp() = ()
-        //if 1L = Increment(&disposeCount) then
-        //    let subscribers = subscriptions.Values
-        //    subscribers |> 
-        //        Seq.iter (fun (subscription, _) -> 
-        //            if not subscription.IsDisposed then (subscription :> IDisposable).Dispose())
             
     override x.Finalize() = x.CleanUp()
     interface IDisposable with

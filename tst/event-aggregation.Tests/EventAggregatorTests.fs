@@ -82,4 +82,3 @@ module EventAggregatorTests =
 
         let receivedValues = subscriber.ReceivedValues |> List.toArray
         (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
-

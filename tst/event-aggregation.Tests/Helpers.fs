@@ -12,78 +12,69 @@ open SFX.EventAggregation
 module Helpers = 
     let inc (x: int64 byref) = Increment(&x) |> ignore
     let read (x: int64 byref) = Read(&x)
-
-[<Sealed>] 
-type CountableAwaiter(count) =
-    let event = new ManualResetEvent(false)
-    let mutable visits = 0L
-
-    new() = CountableAwaiter(1L)
-    member _.Visit() = 
-        inc &visits
-        if visits <= count then
-            event.Set() |> ignore
-    member _.WaitTillDone() = event.WaitOne() |> ignore
-    override x.Finalize() = 
-        event.Dispose()
+    let waitTillDone expectedCalls (calls: int64 byref) =
+        while read &calls < expectedCalls do
+            Thread.Sleep(0)
 
 [<Sealed>]
 type SingleMessageSyncSubscriber() =
-    let awaiter = CountableAwaiter()
+    let expectedCalls = 1L
+    let mutable calls = 0L
     let mutable receivedValue = 0
 
-    member _.WaitTillDone() = awaiter.WaitTillDone()
+    member _.WaitTillDone() = waitTillDone expectedCalls &calls
     member _.ReceivedValue = receivedValue
 
     interface IHandle<int> with
         member _.Handle(message) = 
             receivedValue <- message
-            awaiter.Visit()
+            inc &calls
 
 [<Sealed>]
 type SingleMessageAsyncSubscriber() =
-    let awaiter = CountableAwaiter()
+    let expectedCalls = 1L
+    let mutable calls = 0L
     let mutable receivedValue = 0
 
-    member _.WaitTillDone() = awaiter.WaitTillDone()
+    member _.WaitTillDone() = waitTillDone expectedCalls &calls
     member _.ReceivedValue = receivedValue
 
     interface IHandleAsync<int> with
         member _.HandleAsync(message) = 
             receivedValue <- message
-            awaiter.Visit()
+            inc &calls
             Task.CompletedTask
 
 [<Sealed>]
 type SyncSubscriber(expectedCalls) =
-    let awaiter = CountableAwaiter(int64 expectedCalls)
-    let _lock = ()
+    let mutable calls = 0L
+    let _lock = obj()
     let mutable receivedValues = []
 
-    member _.WaitTillDone() = awaiter.WaitTillDone()
+    member _.WaitTillDone() = waitTillDone expectedCalls &calls
     member _.ReceivedValues = receivedValues |> List.rev
 
     interface IHandle<int> with
         member _.Handle(message) = 
             lock _lock (fun () ->
                 receivedValues <- message::receivedValues
-                awaiter.Visit()
+                inc &calls
             )
 
 [<Sealed>]
 type AsyncSubscriber(expectedCalls) =
-    let awaiter = CountableAwaiter(int64 expectedCalls)
-    let _lock = ()
+    let mutable calls = 0L
+    let _lock = obj()
     let mutable receivedValues = []
 
-    member _.WaitTillDone() = awaiter.WaitTillDone()
+    member _.WaitTillDone() = waitTillDone expectedCalls &calls
     member _.ReceivedValues = receivedValues |> List.rev
 
     interface IHandleAsync<int> with
         member _.HandleAsync(message) = 
             lock _lock (fun () ->
                 receivedValues <- message::receivedValues
-                awaiter.Visit()
+                inc &calls
             )
             Task.CompletedTask
 
