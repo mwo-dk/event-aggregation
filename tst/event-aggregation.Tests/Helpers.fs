@@ -10,7 +10,7 @@ open SFX.EventAggregation
 
 [<AutoOpen>]
 module Helpers = 
-    let inc (x: int64 byref) = Increment(&x) |> ignore
+    let inline inc (x: int64 byref) = Increment(&x) |> ignore
     let read (x: int64 byref) = Read(&x)
     let waitTillDone expectedCalls (calls: int64 byref) =
         while read &calls < expectedCalls do
@@ -44,6 +44,16 @@ type SingleMessageAsyncSubscriber() =
             receivedValue <- message
             inc &calls
             Task.CompletedTask
+
+//type MessageContainer(expectedNumberOfMessages) =
+//    let mutable messageCount = 0L
+//    let innerContainer = System.Collections.Concurrent.ConcurrentDictionary<int64, int>()
+
+//    member _.Receive(value) =
+//        inc &messageCount
+//        let success = innerContainer.TryAdd(inc &messageCount, value)
+//        if not success then
+//            raise (System.InvalidOperationException())
 
 [<Sealed>]
 type SyncSubscriber(expectedCalls) =
