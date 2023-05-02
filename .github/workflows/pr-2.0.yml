@@ -21,7 +21,7 @@ jobs:
       run: echo ${{ github.run_attempt }}
     - name: Set BuildNumber based on repo
       run: |
-        BuildNumber=2.0.${{ github.run_number }}
+        set BuildNumber=2.0.${{ github.run_number }}
         echo "Adding BuildNumber to GITHUB_ENV: BuildNumber=$BuildNumber"
         echo "BuildNumber=$BuildNumber" >> $GITHUB_ENV
     - name: Test
