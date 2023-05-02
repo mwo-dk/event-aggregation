@@ -30,4 +30,4 @@ jobs:
       run: dotnet pack ./src/event-aggregation/event-aggregation.fsproj --configuration Release -p:BuildNumber=${{ env.BuildNumber }} -o ./nuget
     - name: Deploy NuGet Packages
       run: |
-        dotnet nuget push /home/runner/work/event-aggregation/event-aggregation/nuget/ssndk.*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_SECRET }}
+        dotnet nuget push /home/runner/work/event-aggregation/event-aggregation/nuget/SFX.EventAggregation.*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_SECRET }}
