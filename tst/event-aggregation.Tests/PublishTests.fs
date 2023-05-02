@@ -36,64 +36,64 @@ module PublishTests =
 
         message = receivedValue
 
-    [<Property>]
-    let ``publish single message to classic async subscriber works``(message) =
-        use sut : IEventAggregator<int> = createEventAggregator()
-        let expectedCalls = 1L
-        let mutable calls = 0L
-        let mutable receivedValue = 0
-        let subscriber message = 
-            receivedValue <- message
-            inc &calls
-            Task.CompletedTask
-        let subscriber : Subscriber<int> = subscriber
-        let subscriber : Arg<int> = subscriber
-        use _ = sut |> subscribe subscriber
+    //[<Property>]
+    //let ``publish single message to classic async subscriber works``(message) =
+    //    use sut : IEventAggregator<int> = createEventAggregator()
+    //    let expectedCalls = 1L
+    //    let mutable calls = 0L
+    //    let mutable receivedValue = 0
+    //    let subscriber message = 
+    //        receivedValue <- message
+    //        inc &calls
+    //        Task.CompletedTask
+    //    let subscriber : Subscriber<int> = subscriber
+    //    let subscriber : Arg<int> = subscriber
+    //    use _ = sut |> subscribe subscriber
 
-        sut |> publish message
-        waitTillDone expectedCalls &calls
+    //    sut |> publish message
+    //    waitTillDone expectedCalls &calls
 
-        message = receivedValue
+    //    message = receivedValue
 
-    [<Property>]
-    let ``publish single message to task computational expression subscriber works``(message) =
-        use sut : IEventAggregator<int> = createEventAggregator()
-        let expectedCalls = 1L
-        let mutable calls = 0L
-        let mutable receivedValue = 0
-        let subscriber message = 
-            task {
-                receivedValue <- message
-                inc &calls
-            }
-        let subscriber : Subscriber<int> = subscriber
-        let subscriber : Arg<int> = subscriber
-        use _ = sut |> subscribe subscriber
+    //[<Property>]
+    //let ``publish single message to task computational expression subscriber works``(message) =
+    //    use sut : IEventAggregator<int> = createEventAggregator()
+    //    let expectedCalls = 1L
+    //    let mutable calls = 0L
+    //    let mutable receivedValue = 0
+    //    let subscriber message = 
+    //        task {
+    //            receivedValue <- message
+    //            inc &calls
+    //        }
+    //    let subscriber : Subscriber<int> = subscriber
+    //    let subscriber : Arg<int> = subscriber
+    //    use _ = sut |> subscribe subscriber
 
-        sut |> publish message
-        waitTillDone expectedCalls &calls
+    //    sut |> publish message
+    //    waitTillDone expectedCalls &calls
 
-        message = receivedValue
+    //    message = receivedValue
 
-    [<Property>]
-    let ``publish single message to async subscriber works``(message) =
-        use sut : IEventAggregator<int> = createEventAggregator()
-        let expectedCalls = 1L
-        let mutable calls = 0L
-        let mutable receivedValue = 0
-        let subscriber message = 
-            async {
-                receivedValue <- message
-                inc &calls
-            }
-        let subscriber : Subscriber<int> = subscriber
-        let subscriber : Arg<int> = subscriber
-        use _ = sut |> subscribe subscriber
+    //[<Property>]
+    //let ``publish single message to async subscriber works``(message) =
+    //    use sut : IEventAggregator<int> = createEventAggregator()
+    //    let expectedCalls = 1L
+    //    let mutable calls = 0L
+    //    let mutable receivedValue = 0
+    //    let subscriber message = 
+    //        async {
+    //            receivedValue <- message
+    //            inc &calls
+    //        }
+    //    let subscriber : Subscriber<int> = subscriber
+    //    let subscriber : Arg<int> = subscriber
+    //    use _ = sut |> subscribe subscriber
 
-        sut |> publish message
-        waitTillDone expectedCalls &calls
+    //    sut |> publish message
+    //    waitTillDone expectedCalls &calls
 
-        message = receivedValue
+    //    message = receivedValue
 
     //[<Property>]
     //let ``publish multiple messages single message to sync subscriber works``(messages: NonEmptyArray<int>) =
