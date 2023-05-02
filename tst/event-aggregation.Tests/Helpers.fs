@@ -45,47 +45,48 @@ type SingleMessageAsyncSubscriber() =
             inc &calls
             Task.CompletedTask
 
-//type MessageContainer(expectedNumberOfMessages) =
-//    let mutable messageCount = 0L
-//    let innerContainer = System.Collections.Concurrent.ConcurrentDictionary<int64, int>()
+type MessageContainer(expectedNumberOfMessages) =
+    let mutable messageCount = 0L
+    let innerContainer = System.Collections.Concurrent.ConcurrentDictionary<int64, int>()
 
-//    member _.Receive(value) =
-//        inc &messageCount
-//        let success = innerContainer.TryAdd(inc &messageCount, value)
-//        if not success then
-//            raise (System.InvalidOperationException())
+    member _.Receive(value) =
+        inc &messageCount
+        let success = innerContainer.TryAdd(Increment(&messageCount), value)
+        if not success then
+            raise (System.InvalidOperationException())
+    member _.IsComplete 
+        with get() = expectedNumberOfMessages = innerContainer.Count
+    member x.WaitTillComplete() =
+        while not (x.IsComplete) do
+            Thread.Sleep(0)
+    member _.ReceivedValues 
+        with get() =
+            innerContainer |>
+            Seq.map (fun kvp -> (kvp.Key, kvp.Value)) |>
+            Seq.sortBy fst |>
+            Seq.map snd |>
+            Seq.toArray
 
 [<Sealed>]
 type SyncSubscriber(expectedCalls) =
-    let mutable calls = 0L
-    let _lock = obj()
-    let mutable receivedValues = []
+    let messageContainer = MessageContainer(expectedCalls)
 
-    member _.WaitTillDone() = waitTillDone expectedCalls &calls
-    member _.ReceivedValues = receivedValues |> List.rev
+    member _.WaitTillDone() = messageContainer.WaitTillComplete()
+    member _.ReceivedValues = messageContainer.ReceivedValues
 
     interface IHandle<int> with
-        member _.Handle(message) = 
-            lock _lock (fun () ->
-                receivedValues <- message::receivedValues
-                inc &calls
-            )
+        member _.Handle(message) = messageContainer.Receive(message)
 
 [<Sealed>]
 type AsyncSubscriber(expectedCalls) =
-    let mutable calls = 0L
-    let _lock = obj()
-    let mutable receivedValues = []
+    let messageContainer = MessageContainer(expectedCalls)
 
-    member _.WaitTillDone() = waitTillDone expectedCalls &calls
-    member _.ReceivedValues = receivedValues |> List.rev
+    member _.WaitTillDone() = messageContainer.WaitTillComplete()
+    member _.ReceivedValues = messageContainer.ReceivedValues
 
     interface IHandleAsync<int> with
         member _.HandleAsync(message) = 
-            lock _lock (fun () ->
-                receivedValues <- message::receivedValues
-                inc &calls
-            )
+            messageContainer.Receive(message)
             Task.CompletedTask
 
 type IAction =

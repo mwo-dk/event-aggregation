@@ -1,5 +1,5 @@
 {
   "methodDisplay": "method",
-  "maxParallelThreads": 1,
+  //"maxParallelThreads": 1,
   "diagnosticMessages":  true
 }

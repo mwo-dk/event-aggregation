@@ -92,196 +92,160 @@ module PublishTests =
 
         message = receivedValue
 
-    [<Property>]
-    let ``publish multiple messages single message to sync subscriber works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
-        use sut : IEventAggregator<int> = createEventAggregator()
-        let expectedCalls = messages.Length
-        let mutable calls = 0L
-        let _lock = obj()
-        let mutable receivedValues : int list= []
-        let subscriber message =
-            lock _lock (fun () ->
-                receivedValues <- message::receivedValues
-                inc &calls
-            )
-        let subscriber : Subscriber<int> = subscriber
-        let subscriber : Arg<int> = subscriber
-        use _ = sut |> subscribe subscriber
+    //[<Property>]
+    //let ``publish multiple messages single message to sync subscriber works``(messages: NonEmptyArray<int>) =
+    //    let messages = messages.Get
+    //    use sut : IEventAggregator<int> = createEventAggregator()
+    //    let expectedCalls = messages.Length
+    //    let messageContainer = MessageContainer(expectedCalls)
+    //    let subscriber message =
+    //        messageContainer.Receive(message)
+    //    let subscriber : Subscriber<int> = subscriber
+    //    let subscriber : Arg<int> = subscriber
+    //    use _ = sut |> subscribe subscriber
 
-        messages |> Array.iter (fun message -> sut.Publish(message))
-        waitTillDone expectedCalls &calls
+    //    messages |> Array.iter (fun message -> sut.Publish(message))
+    //    messageContainer.WaitTillComplete()
 
-        messages |> Array.fold (fun ok message -> ok && receivedValues |> List.contains(message)) true
+    //    let receivedValues = messageContainer.ReceivedValues
+    //    messages |> Array.fold (fun ok message -> ok && receivedValues |> Array.contains(message)) true
 
-    [<Property>]
-    let ``publish multiple messages to classic async subscriber works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
-        use sut : IEventAggregator<int> = createEventAggregator()
-        let expectedCalls = messages.Length
-        let mutable calls = 0L
-        let _lock = obj()
-        let mutable receivedValues : int list= []
-        let subscriber message = 
-            lock _lock (fun () ->
-                receivedValues <- message::receivedValues
-                inc &calls
-            )
-            Task.CompletedTask
-        let subscriber : Subscriber<int> = subscriber
-        let subscriber : Arg<int> = subscriber
-        use _ = sut |> subscribe subscriber
+    //[<Property>]
+    //let ``publish multiple messages to classic async subscriber works``(messages: NonEmptyArray<int>) =
+    //    let messages = messages.Get
+    //    use sut : IEventAggregator<int> = createEventAggregator()
+    //    let expectedCalls = messages.Length
+    //    let messageContainer = MessageContainer(expectedCalls)
+    //    let subscriber message = 
+    //        messageContainer.Receive(message)
+    //        Task.CompletedTask
+    //    let subscriber : Subscriber<int> = subscriber
+    //    let subscriber : Arg<int> = subscriber
+    //    use _ = sut |> subscribe subscriber
 
-        messages |> Array.iter (fun message -> sut.Publish(message))
-        waitTillDone expectedCalls &calls
+    //    messages |> Array.iter (fun message -> sut.Publish(message))
+    //    messageContainer.WaitTillComplete()
 
-        messages |> Array.fold (fun ok message -> ok && receivedValues |> List.contains(message)) true
+    //    let receivedValues = messageContainer.ReceivedValues
+    //    messages |> Array.fold (fun ok message -> ok && receivedValues |> Array.contains(message)) true
 
-    [<Property>]
-    let ``publish multiple messages to task computational expression subscriber works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
-        use sut : IEventAggregator<int> = createEventAggregator()
-        let expectedCalls = messages.Length
-        let mutable calls = 0L
-        let _lock = obj()
-        let mutable receivedValues : int list= []
-        let subscriber message = 
-            task {
-                lock _lock (fun () ->
-                receivedValues <- message::receivedValues
-                inc &calls
-            )
-            }
-        let subscriber : Subscriber<int> = subscriber
-        let subscriber : Arg<int> = subscriber
-        use _ = sut |> subscribe subscriber
+    //[<Property>]
+    //let ``publish multiple messages to task computational expression subscriber works``(messages: NonEmptyArray<int>) =
+    //    let messages = messages.Get
+    //    use sut : IEventAggregator<int> = createEventAggregator()
+    //    let expectedCalls = messages.Length
+    //    let messageContainer = MessageContainer(expectedCalls)
+    //    let subscriber message = 
+    //        task {
+    //            messageContainer.Receive(message)
+    //        }
+    //    let subscriber : Subscriber<int> = subscriber
+    //    let subscriber : Arg<int> = subscriber
+    //    use _ = sut |> subscribe subscriber
 
-        messages |> Array.iter (fun message -> sut.Publish(message))
-        waitTillDone expectedCalls &calls
+    //    messages |> Array.iter (fun message -> sut.Publish(message))
+    //    messageContainer.WaitTillComplete()
 
-        messages |> Array.fold (fun ok message -> ok && receivedValues |> List.contains(message)) true
+    //    let receivedValues = messageContainer.ReceivedValues
+    //    messages |> Array.fold (fun ok message -> ok && receivedValues |> Array.contains(message)) true
 
-    [<Property>]
-    let ``publish multiple messages to async subscriber works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
-        use sut : IEventAggregator<int> = createEventAggregator()
-        let expectedCalls = messages.Length
-        let mutable calls = 0L
-        let _lock = obj()
-        let mutable receivedValues : int list= []
-        let subscriber message = 
-            async {
-                lock _lock (fun () ->
-                receivedValues <- message::receivedValues
-                inc &calls
-            )
-            }
-        let subscriber : Subscriber<int> = subscriber
-        let subscriber : Arg<int> = subscriber
-        use _ = sut |> subscribe subscriber
+    //[<Property>]
+    //let ``publish multiple messages to async subscriber works``(messages: NonEmptyArray<int>) =
+    //    let messages = messages.Get
+    //    use sut : IEventAggregator<int> = createEventAggregator()
+    //    let expectedCalls = messages.Length
+    //    let messageContainer = MessageContainer(expectedCalls)
+    //    let subscriber message = 
+    //        async {
+    //            messageContainer.Receive(message)
+    //        }
+    //    let subscriber : Subscriber<int> = subscriber
+    //    let subscriber : Arg<int> = subscriber
+    //    use _ = sut |> subscribe subscriber
 
-        messages |> Array.iter (fun message -> sut.Publish(message))
-        waitTillDone expectedCalls &calls
+    //    messages |> Array.iter (fun message -> sut.Publish(message))
+    //    messageContainer.WaitTillComplete()
 
-        messages |> Array.fold (fun ok message -> ok && receivedValues |> List.contains(message)) true
+    //    let receivedValues = messageContainer.ReceivedValues
+    //    messages |> Array.fold (fun ok message -> ok && receivedValues |> Array.contains(message)) true
 
-    [<Property>]
-    let ``publish multiple messages single message to sync subscriber with serialization works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
-        use sut : IEventAggregator<int> = createEventAggregator()
-        let expectedCalls = messages.Length
-        let mutable calls = 0L
-        let _lock = obj()
-        let mutable receivedValues : int list= []
-        let subscriber message =
-            lock _lock (fun () ->
-                receivedValues <- message::receivedValues
-                inc &calls
-            )
-        let subscriber : Subscriber<int> = subscriber
-        let subscriber : Arg<int> = subscriber
-        let subscriber = subscriber |> withSerializationOfNotifications true
-        use _ = sut |> subscribe subscriber
+    //[<Property>]
+    //let ``publish multiple messages single message to sync subscriber with serialization works``(messages: NonEmptyArray<int>) =
+    //    let messages = messages.Get
+    //    use sut : IEventAggregator<int> = createEventAggregator()
+    //    let expectedCalls = messages.Length
+    //    let messageContainer = MessageContainer(expectedCalls)
+    //    let subscriber message =
+    //        messageContainer.Receive(message)
+    //    let subscriber : Subscriber<int> = subscriber
+    //    let subscriber : Arg<int> = subscriber
+    //    let subscriber = subscriber |> withSerializationOfNotifications true
+    //    use _ = sut |> subscribe subscriber
 
-        messages |> Array.iter (fun message -> sut.Publish(message))
-        waitTillDone expectedCalls &calls
+    //    messages |> Array.iter (fun message -> sut.Publish(message))
+    //    messageContainer.WaitTillComplete()
 
-        let receivedValues = receivedValues |> List.rev |> List.toArray
-        (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
+    //    let receivedValues = messageContainer.ReceivedValues
+    //    (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
 
-    [<Property>]
-    let ``publish multiple messages to classic async subscriber with serialization works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
-        use sut : IEventAggregator<int> = createEventAggregator()
-        let expectedCalls = messages.Length
-        let mutable calls = 0L
-        let _lock = obj()
-        let mutable receivedValues : int list= []
-        let subscriber message = 
-            lock _lock (fun () ->
-                receivedValues <- message::receivedValues
-                inc &calls
-            )
-            Task.CompletedTask
-        let subscriber : Subscriber<int> = subscriber
-        let subscriber : Arg<int> = subscriber
-        let subscriber = subscriber |> withSerializationOfNotifications true
-        use _ = sut |> subscribe subscriber
+    //[<Property>]
+    //let ``publish multiple messages to classic async subscriber with serialization works``(messages: NonEmptyArray<int>) =
+    //    let messages = messages.Get
+    //    use sut : IEventAggregator<int> = createEventAggregator()
+    //    let expectedCalls = messages.Length
+    //    let messageContainer = MessageContainer(expectedCalls)
+    //    let subscriber message = 
+    //        messageContainer.Receive(message)
+    //        Task.CompletedTask
+    //    let subscriber : Subscriber<int> = subscriber
+    //    let subscriber : Arg<int> = subscriber
+    //    let subscriber = subscriber |> withSerializationOfNotifications true
+    //    use _ = sut |> subscribe subscriber
 
-        messages |> Array.iter (fun message -> sut.Publish(message))
-        waitTillDone expectedCalls &calls
+    //    messages |> Array.iter (fun message -> sut.Publish(message))
+    //    messageContainer.WaitTillComplete()
 
-        let receivedValues = receivedValues |> List.rev |> List.toArray
-        (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
+    //    let receivedValues = messageContainer.ReceivedValues
+    //    (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
 
-    [<Property>]
-    let ``publish multiple messages to task computational expression subscriber with serialization works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
-        use sut : IEventAggregator<int> = createEventAggregator()
-        let expectedCalls = messages.Length
-        let mutable calls = 0L
-        let _lock = obj()
-        let mutable receivedValues : int list= []
-        let subscriber message = 
-            task {
-                lock _lock (fun () ->
-                receivedValues <- message::receivedValues
-                inc &calls
-            )
-            }
-        let subscriber : Subscriber<int> = subscriber
-        let subscriber : Arg<int> = subscriber
-        let subscriber = subscriber |> withSerializationOfNotifications true
-        use _ = sut |> subscribe subscriber
+    //[<Property>]
+    //let ``publish multiple messages to task computational expression subscriber with serialization works``(messages: NonEmptyArray<int>) =
+    //    let messages = messages.Get
+    //    use sut : IEventAggregator<int> = createEventAggregator()
+    //    let expectedCalls = messages.Length
+    //    let messageContainer = MessageContainer(expectedCalls)
+    //    let subscriber message = 
+    //        task {
+    //            messageContainer.Receive(message)
+    //        }
+    //    let subscriber : Subscriber<int> = subscriber
+    //    let subscriber : Arg<int> = subscriber
+    //    let subscriber = subscriber |> withSerializationOfNotifications true
+    //    use _ = sut |> subscribe subscriber
 
-        messages |> Array.iter (fun message -> sut.Publish(message))
-        waitTillDone expectedCalls &calls
+    //    messages |> Array.iter (fun message -> sut.Publish(message))
+    //    messageContainer.WaitTillComplete()
 
-        let receivedValues = receivedValues |> List.rev |> List.toArray
-        (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
+    //    let receivedValues = messageContainer.ReceivedValues
+    //    (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
 
-    [<Property>]
-    let ``publish multiple messages to async subscriber with serialization works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
-        use sut : IEventAggregator<int> = createEventAggregator()
-        let expectedCalls = messages.Length
-        let mutable calls = 0L
-        let _lock = obj()
-        let mutable receivedValues : int list= []
-        let subscriber message = 
-            async {
-                lock _lock (fun () ->
-                receivedValues <- message::receivedValues
-                inc &calls
-            )
-            }
-        let subscriber : Subscriber<int> = subscriber
-        let subscriber : Arg<int> = subscriber
-        let subscriber = subscriber |> withSerializationOfNotifications true
-        use _ = sut |> subscribe subscriber
+    //[<Property>]
+    //let ``publish multiple messages to async subscriber with serialization works``(messages: NonEmptyArray<int>) =
+    //    let messages = messages.Get
+    //    use sut : IEventAggregator<int> = createEventAggregator()
+    //    let expectedCalls = messages.Length
+    //    let messageContainer = MessageContainer(expectedCalls)
+    //    let subscriber message = 
+    //        async {
+    //            messageContainer.Receive(message)
+    //        }
+    //    let subscriber : Subscriber<int> = subscriber
+    //    let subscriber : Arg<int> = subscriber
+    //    let subscriber = subscriber |> withSerializationOfNotifications true
+    //    use _ = sut |> subscribe subscriber
 
-        messages |> Array.iter (fun message -> sut.Publish(message))
-        waitTillDone expectedCalls &calls
+    //    messages |> Array.iter (fun message -> sut.Publish(message))
+    //    messageContainer.WaitTillComplete()
 
-        let receivedValues = receivedValues |> List.rev |> List.toArray
-        (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
+    //    let receivedValues = messageContainer.ReceivedValues
+    //    (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true

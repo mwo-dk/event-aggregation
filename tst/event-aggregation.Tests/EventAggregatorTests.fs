@@ -43,7 +43,7 @@ module EventAggregatorTests =
         messages |> Array.iter (fun message -> sut.Publish(message))
         subscriber.WaitTillDone()
 
-        messages |> Array.fold (fun ok message -> ok && subscriber.ReceivedValues |> List.contains(message)) true
+        messages |> Array.fold (fun ok message -> ok && subscriber.ReceivedValues |> Array.contains(message)) true
 
     [<Property>]
     let ``Publish multiple messages to async subscriber works``(messages: NonEmptyArray<int>) =
@@ -55,7 +55,7 @@ module EventAggregatorTests =
         messages |> Array.iter (fun message -> sut.Publish(message))
         subscriber.WaitTillDone()
 
-        messages |> Array.fold (fun ok message -> ok && subscriber.ReceivedValues |> List.contains(message)) true
+        messages |> Array.fold (fun ok message -> ok && subscriber.ReceivedValues |> Array.contains(message)) true
 
     [<Property>]
     let ``Publish multiple messages to sync subscriber with serialization works``(messages: NonEmptyArray<int>) =
@@ -67,7 +67,7 @@ module EventAggregatorTests =
         messages |> Array.iter (fun message -> sut.Publish(message))
         subscriber.WaitTillDone()
 
-        let receivedValues = subscriber.ReceivedValues |> List.toArray
+        let receivedValues = subscriber.ReceivedValues
         (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
 
     [<Property>]
@@ -80,5 +80,5 @@ module EventAggregatorTests =
         messages |> Array.iter (fun message -> sut.Publish(message))
         subscriber.WaitTillDone()
 
-        let receivedValues = subscriber.ReceivedValues |> List.toArray
+        let receivedValues = subscriber.ReceivedValues 
         (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
