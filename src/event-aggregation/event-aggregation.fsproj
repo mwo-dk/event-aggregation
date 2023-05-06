@@ -14,7 +14,6 @@
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 
 		<Deterministic>true</Deterministic>
-		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
