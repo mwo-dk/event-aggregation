@@ -27,8 +27,7 @@ jobs:
     - name: Test
       run: dotnet test ./event-aggregation.sln --configuration Release 
     - name: Build NuGet Packages
-      run: dotnet pack ./src/event-aggregation/event-aggregation.fsproj --configuration Release -p:BuildNumber=${{ env.BuildNumber }} -o ./nuget
+      run: dotnet pack ./src/event-aggregation/event-aggregation.fsproj --configuration Release --include-symbols -p:BuildNumber=${{ env.BuildNumber }} -o ./nuget
     - name: Deploy NuGet Packages
       run: |
         dotnet nuget push /home/runner/work/event-aggregation/event-aggregation/nuget/SFX.EventAggregation.*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
-        dotnet nuget push /home/runner/work/event-aggregation/event-aggregation/nuget/SFX.EventAggregation.*.snupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
