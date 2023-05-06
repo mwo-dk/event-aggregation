@@ -31,4 +31,3 @@ jobs:
     - name: Deploy NuGet Packages
       run: |
         dotnet nuget push /home/runner/work/event-aggregation/event-aggregation/nuget/SFX.EventAggregation.*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
-        dotnet nuget push /home/runner/work/event-aggregation/event-aggregation/nuget/SFX.EventAggregation.*.snupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
