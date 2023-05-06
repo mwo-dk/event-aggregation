@@ -13,10 +13,7 @@ open SFX.EventAggregation
 [<Trait("Category", "Unit")>]
 module PublishTests =
 
-    [<Theory>]
-    [<InlineData(0)>]
-    [<InlineData(42)>]
-    [<InlineData(666)>]
+    [<Property>]
     let ``publish single message single message to sync subscriber works``(message) =
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
@@ -37,10 +34,7 @@ module PublishTests =
 
         message = receivedValue
 
-    [<Theory>]
-    [<InlineData(0)>]
-    [<InlineData(42)>]
-    [<InlineData(666)>]
+    [<Property>]
     let ``publish single message to classic async subscriber works``(message) =
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
@@ -61,10 +55,7 @@ module PublishTests =
 
         message = receivedValue
 
-    [<Theory>]
-    [<InlineData(0)>]
-    [<InlineData(42)>]
-    [<InlineData(666)>]
+    [<Property>]
     let ``publish single message to task computational expression subscriber works``(message) =
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
@@ -86,10 +77,7 @@ module PublishTests =
 
         message = receivedValue
 
-    [<Theory>]
-    [<InlineData(0)>]
-    [<InlineData(42)>]
-    [<InlineData(666)>]
+    [<Property>]
     let ``publish single message to async subscriber works``(message) =
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
