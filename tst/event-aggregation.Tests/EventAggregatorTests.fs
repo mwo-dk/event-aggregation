@@ -14,7 +14,7 @@ module EventAggregatorTests =
     [<Property>]
     let ``Publish single message to sync subscriber works``(message) =
         let sut : IEventAggregator<int> = createEventAggregator()
-        let subscriber = SingleMessageSyncSubscriber()
+        use subscriber = new SingleMessageSyncSubscriber()
         use _ = sut.Subscribe(subscriber, Unchecked.defaultof<SynchronizationContext>, true)
 
         sut.Publish(message)
@@ -25,7 +25,7 @@ module EventAggregatorTests =
     [<Property>]
     let ``Publish single message to async subscriber works``(message) =
         let sut : IEventAggregator<int> = createEventAggregator()
-        let subscriber = SingleMessageAsyncSubscriber()
+        use subscriber = new SingleMessageAsyncSubscriber()
         use _ = sut.SubscribeAsync(subscriber, Unchecked.defaultof<SynchronizationContext>, true)
 
         sut.Publish(message)
@@ -37,7 +37,7 @@ module EventAggregatorTests =
     let ``Publish multiple messages to sync subscriber works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
         let sut : IEventAggregator<int> = createEventAggregator()
-        let subscriber = SyncSubscriber(messages.Length)
+        use subscriber = new SyncSubscriber(messages.Length)
         use _ = sut.Subscribe(subscriber, Unchecked.defaultof<SynchronizationContext>, false)
 
         messages |> Array.iter (fun message -> sut.Publish(message))
@@ -49,7 +49,7 @@ module EventAggregatorTests =
     let ``Publish multiple messages to async subscriber works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
         let sut : IEventAggregator<int> = createEventAggregator()
-        let subscriber = AsyncSubscriber(messages.Length)
+        use subscriber = new AsyncSubscriber(messages.Length)
         use _ = sut.SubscribeAsync(subscriber, Unchecked.defaultof<SynchronizationContext>, false)
 
         messages |> Array.iter (fun message -> sut.Publish(message))
@@ -61,7 +61,7 @@ module EventAggregatorTests =
     let ``Publish multiple messages to sync subscriber with serialization works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
         let sut : IEventAggregator<int> = createEventAggregator()
-        let subscriber = SyncSubscriber(messages.Length)
+        use subscriber = new SyncSubscriber(messages.Length)
         use _ = sut.Subscribe(subscriber, Unchecked.defaultof<SynchronizationContext>, true)
 
         messages |> Array.iter (fun message -> sut.Publish(message))
@@ -74,7 +74,7 @@ module EventAggregatorTests =
     let ``Publish multiple messages to async subscriber with serialization works``(messages: NonEmptyArray<int>) =
         let messages = messages.Get
         let sut : IEventAggregator<int> = createEventAggregator()
-        let subscriber = AsyncSubscriber(messages.Length)
+        use subscriber = new AsyncSubscriber(messages.Length)
         use _ = sut.SubscribeAsync(subscriber, Unchecked.defaultof<SynchronizationContext>, true)
 
         messages |> Array.iter (fun message -> sut.Publish(message))
