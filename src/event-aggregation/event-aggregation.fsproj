@@ -5,6 +5,13 @@
 		<AssemblyName>SFX.EventAggregation</AssemblyName>
 		<RootNamespace>SFX.EventAggregation</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+ 
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+  
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -13,6 +20,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="7.0.0" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
 	</ItemGroup>
 
 </Project>
