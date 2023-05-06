@@ -4,7 +4,6 @@ open System
 open System.Threading
 open System.Threading.Tasks
 open type System.Threading.Interlocked
-open Moq
 open SFX.EventAggregation
 
 #nowarn "3391"
