@@ -2,7 +2,6 @@
 
 open System.Threading
 open Xunit
-open FsCheck.Xunit
 open SFX.EventAggregation
 
 #nowarn "3391"
@@ -39,15 +38,17 @@ module ArgTests =
         | ASC (_, x) when x = sc -> Assert.True(true)
         | _ -> Assert.True(false)
 
-    [<Property>]
+    [<Theory>]
+    [<InlineData(false)>]
+    [<InlineData(true)>]
     let ``withSynchronizationContext for ASS works``(serializeNotification) =
         let subscriber (_: int) = ()
         let subscriber : Subscriber<int> = subscriber
         let result = arg subscriber |> withSerializationOfNotifications serializeNotification
         let sc = SynchronizationContext()
         match result |> withSynchronizationContext sc with
-        | ASCS (_, x, y) when x = sc && y = serializeNotification -> true
-        | _ -> false
+        | ASCS (_, x, y) when x = sc && y = serializeNotification -> Assert.True(true)
+        | _ -> Assert.True(false)
 
     [<Theory>]
     [<InlineData(false)>]

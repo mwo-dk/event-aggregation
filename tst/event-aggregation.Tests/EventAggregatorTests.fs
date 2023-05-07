@@ -2,8 +2,6 @@
 
 open System.Threading
 open Xunit
-open FsCheck
-open FsCheck.Xunit
 open SFX.EventAggregation
 
 #nowarn "3391"
@@ -11,7 +9,10 @@ open SFX.EventAggregation
 [<Trait("Category", "Unit")>]
 module EventAggregatorTests =
 
-    [<Property>]
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
     let ``Publish single message to sync subscriber works``(message) =
         let sut : IEventAggregator<int> = createEventAggregator()
         use subscriber = new SingleMessageSyncSubscriber()
@@ -20,9 +21,12 @@ module EventAggregatorTests =
         sut.Publish(message)
         subscriber.WaitTillDone()
 
-        message = subscriber.ReceivedValue
+        Assert.Equal(message, subscriber.ReceivedValue)
 
-    [<Property>]
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
     let ``Publish single message to async subscriber works``(message) =
         let sut : IEventAggregator<int> = createEventAggregator()
         use subscriber = new SingleMessageAsyncSubscriber()
@@ -31,54 +35,66 @@ module EventAggregatorTests =
         sut.Publish(message)
         subscriber.WaitTillDone()
 
-        message = subscriber.ReceivedValue
+        Assert.Equal(message, subscriber.ReceivedValue)
 
-    [<Property>]
-    let ``Publish multiple messages to sync subscriber works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
+    let ``Publish multiple messages to sync subscriber works``(length) =
+        let messages = rndIntArray length
         let sut : IEventAggregator<int> = createEventAggregator()
-        use subscriber = new SyncSubscriber(messages.Length)
+        use subscriber = new SyncSubscriber(length)
         use _ = sut.Subscribe(subscriber, Unchecked.defaultof<SynchronizationContext>, false)
 
         messages |> Array.iter (fun message -> sut.Publish(message))
         subscriber.WaitTillDone()
 
-        messages |> Array.fold (fun ok message -> ok && subscriber.ReceivedValues |> Array.contains(message)) true
+        Assert.True(messages |> Array.fold (fun ok message -> ok && subscriber.ReceivedValues |> Array.contains(message)) true)
 
-    [<Property>]
-    let ``Publish multiple messages to async subscriber works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
+    let ``Publish multiple messages to async subscriber works``(length) =
+        let messages = rndIntArray length
         let sut : IEventAggregator<int> = createEventAggregator()
-        use subscriber = new AsyncSubscriber(messages.Length)
+        use subscriber = new AsyncSubscriber(length)
         use _ = sut.SubscribeAsync(subscriber, Unchecked.defaultof<SynchronizationContext>, false)
 
         messages |> Array.iter (fun message -> sut.Publish(message))
         subscriber.WaitTillDone()
 
-        messages |> Array.fold (fun ok message -> ok && subscriber.ReceivedValues |> Array.contains(message)) true
+        Assert.True(messages |> Array.fold (fun ok message -> ok && subscriber.ReceivedValues |> Array.contains(message)) true)
 
-    [<Property>]
-    let ``Publish multiple messages to sync subscriber with serialization works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
+    let ``Publish multiple messages to sync subscriber with serialization works``(length) =
+        let messages = rndIntArray length
         let sut : IEventAggregator<int> = createEventAggregator()
-        use subscriber = new SyncSubscriber(messages.Length)
+        use subscriber = new SyncSubscriber(length)
         use _ = sut.Subscribe(subscriber, Unchecked.defaultof<SynchronizationContext>, true)
 
         messages |> Array.iter (fun message -> sut.Publish(message))
         subscriber.WaitTillDone()
 
         let receivedValues = subscriber.ReceivedValues
-        (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
+        Assert.True((messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true)
 
-    [<Property>]
-    let ``Publish multiple messages to async subscriber with serialization works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
+    let ``Publish multiple messages to async subscriber with serialization works``(length) =
+        let messages = rndIntArray length
         let sut : IEventAggregator<int> = createEventAggregator()
-        use subscriber = new AsyncSubscriber(messages.Length)
+        use subscriber = new AsyncSubscriber(length)
         use _ = sut.SubscribeAsync(subscriber, Unchecked.defaultof<SynchronizationContext>, true)
 
         messages |> Array.iter (fun message -> sut.Publish(message))
         subscriber.WaitTillDone()
 
         let receivedValues = subscriber.ReceivedValues 
-        (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
+        Assert.True((messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true)

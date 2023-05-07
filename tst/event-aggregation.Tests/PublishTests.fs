@@ -3,8 +3,6 @@
 open System.Threading
 open System.Threading.Tasks
 open Xunit
-open FsCheck
-open FsCheck.Xunit
 open Moq
 open SFX.EventAggregation
 
@@ -13,7 +11,10 @@ open SFX.EventAggregation
 [<Trait("Category", "Unit")>]
 module PublishTests =
 
-    [<Property>]
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
     let ``publish single message single message to sync subscriber works``(message) =
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
@@ -32,9 +33,12 @@ module PublishTests =
         sut |> publish message
         event.WaitOne() |> ignore
 
-        message = receivedValue
+        Assert.Equal(message, receivedValue)
 
-    [<Property>]
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
     let ``publish single message to classic async subscriber works``(message) =
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
@@ -53,9 +57,12 @@ module PublishTests =
         sut |> publish message
         event.WaitOne() |> ignore
 
-        message = receivedValue
+        Assert.Equal(message, receivedValue)
 
-    [<Property>]
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
     let ``publish single message to task computational expression subscriber works``(message) =
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
@@ -75,9 +82,12 @@ module PublishTests =
         sut |> publish message
         event.WaitOne() |> ignore
 
-        message = receivedValue
+        Assert.Equal(message, receivedValue)
 
-    [<Property>]
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
     let ``publish single message to async subscriber works``(message) =
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
@@ -97,14 +107,17 @@ module PublishTests =
         sut |> publish message
         event.WaitOne() |> ignore
 
-        message = receivedValue
+        Assert.Equal(message, receivedValue)
 
-    [<Property>]
-    let ``publish multiple messages single message to sync subscriber works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
+    let ``publish multiple messages single message to sync subscriber works``(length) =
+        let messages = rndIntArray length
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
-        let expectedCalls = messages.Length
+        let expectedCalls = length
         let mutable calls = 0L
         let receivedValues : int array = Array.zeroCreate expectedCalls
         let subscriber message =
@@ -119,14 +132,17 @@ module PublishTests =
         messages |> Array.iter (fun message -> sut.Publish(message))
         event.WaitOne() |> ignore
 
-        messages |> Array.fold (fun ok message -> ok && receivedValues |> Array.contains(message)) true
+        Assert.True(messages |> Array.fold (fun ok message -> ok && receivedValues |> Array.contains(message)) true)
 
-    [<Property>]
-    let ``publish multiple messages to classic async subscriber works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
+    let ``publish multiple messages to classic async subscriber works``(length) =
+        let messages = rndIntArray length
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
-        let expectedCalls = messages.Length
+        let expectedCalls = length
         let mutable calls = 0L
         let receivedValues : int array = Array.zeroCreate expectedCalls
         let subscriber message = 
@@ -142,14 +158,17 @@ module PublishTests =
         messages |> Array.iter (fun message -> sut.Publish(message))
         event.WaitOne() |> ignore
 
-        messages |> Array.fold (fun ok message -> ok && receivedValues |> Array.contains(message)) true
+        Assert.True(messages |> Array.fold (fun ok message -> ok && receivedValues |> Array.contains(message)) true)
 
-    [<Property>]
-    let ``publish multiple messages to task computational expression subscriber works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
+    let ``publish multiple messages to task computational expression subscriber works``(length) =
+        let messages = rndIntArray length
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
-        let expectedCalls = messages.Length
+        let expectedCalls = length
         let mutable calls = 0L
         let receivedValues : int array = Array.zeroCreate expectedCalls
         let subscriber message = 
@@ -166,14 +185,17 @@ module PublishTests =
         messages |> Array.iter (fun message -> sut.Publish(message))
         event.WaitOne() |> ignore
 
-        messages |> Array.fold (fun ok message -> ok && receivedValues |> Array.contains(message)) true
+        Assert.True(messages |> Array.fold (fun ok message -> ok && receivedValues |> Array.contains(message)) true)
 
-    [<Property>]
-    let ``publish multiple messages to async subscriber works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
+    let ``publish multiple messages to async subscriber works``(length) =
+        let messages = rndIntArray length
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
-        let expectedCalls = messages.Length
+        let expectedCalls = length
         let mutable calls = 0L
         let receivedValues : int array = Array.zeroCreate expectedCalls
         let subscriber message = 
@@ -190,14 +212,17 @@ module PublishTests =
         messages |> Array.iter (fun message -> sut.Publish(message))
         event.WaitOne() |> ignore
 
-        messages |> Array.fold (fun ok message -> ok && receivedValues |> Array.contains(message)) true
+        Assert.True(messages |> Array.fold (fun ok message -> ok && receivedValues |> Array.contains(message)) true)
 
-    [<Property>]
-    let ``publish multiple messages single message to sync subscriber with serialization works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
+    let ``publish multiple messages single message to sync subscriber with serialization works``(length) =
+        let messages = rndIntArray length
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
-        let expectedCalls = messages.Length
+        let expectedCalls = length
         let mutable calls = 0L
         let receivedValues : int array = Array.zeroCreate expectedCalls
         let subscriber message =
@@ -213,14 +238,17 @@ module PublishTests =
         messages |> Array.iter (fun message -> sut.Publish(message))
         event.WaitOne() |> ignore
 
-        (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
+        Assert.True((messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true)
 
-    [<Property>]
-    let ``publish multiple messages to classic async subscriber with serialization works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
+    let ``publish multiple messages to classic async subscriber with serialization works``(length) =
+        let messages = rndIntArray length
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
-        let expectedCalls = messages.Length
+        let expectedCalls = length
         let mutable calls = 0L
         let receivedValues : int array = Array.zeroCreate expectedCalls
         let subscriber message = 
@@ -237,14 +265,17 @@ module PublishTests =
         messages |> Array.iter (fun message -> sut.Publish(message))
         event.WaitOne() |> ignore
 
-        (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
+        Assert.True((messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true)
 
-    [<Property>]
-    let ``publish multiple messages to task computational expression subscriber with serialization works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
+    let ``publish multiple messages to task computational expression subscriber with serialization works``(length) =
+        let messages = rndIntArray length
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
-        let expectedCalls = messages.Length
+        let expectedCalls = length
         let mutable calls = 0L
         let receivedValues : int array = Array.zeroCreate expectedCalls
         let subscriber message = 
@@ -262,14 +293,17 @@ module PublishTests =
         messages |> Array.iter (fun message -> sut.Publish(message))
         event.WaitOne() |> ignore
 
-        (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
+        Assert.True((messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true)
 
-    [<Property>]
-    let ``publish multiple messages to async subscriber with serialization works``(messages: NonEmptyArray<int>) =
-        let messages = messages.Get
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(42)>]
+    [<InlineData(666)>]
+    let ``publish multiple messages to async subscriber with serialization works``(length) =
+        let messages = rndIntArray length
         use sut : IEventAggregator<int> = createEventAggregator()
         use event = new ManualResetEvent(false)
-        let expectedCalls = messages.Length
+        let expectedCalls = length
         let mutable calls = 0L
         let receivedValues : int array = Array.zeroCreate expectedCalls
         let subscriber message = 
@@ -287,4 +321,4 @@ module PublishTests =
         messages |> Array.iter (fun message -> sut.Publish(message))
         event.WaitOne() |> ignore
 
-        (messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true
+        Assert.True((messages, receivedValues) ||> Array.fold2 (fun ok x y -> ok && x = y) true)

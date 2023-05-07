@@ -6,6 +6,7 @@ open System.Threading
 open System.Threading.Tasks
 open System.Threading.Tasks.Dataflow
 open type System.Threading.Interlocked
+open System.Runtime.CompilerServices
 
 type IHandle<'a> =
     abstract member Handle : 'a -> unit
@@ -21,7 +22,9 @@ type IEventAggregator<'a> =
     abstract member SubscribeAsync : IHandleAsync<'a>*SynchronizationContext*bool -> IDisposable
     abstract member Publish : 'a -> unit
 
-type Subscription(unsubscribe: unit -> bool) =
+type Unsubscriber = unit -> bool
+
+type Subscription(unsubscribe: Unsubscriber) =
     let mutable disposeCount = 0L
 
     member _.IsDisposed = 0L < Read(&disposeCount)
