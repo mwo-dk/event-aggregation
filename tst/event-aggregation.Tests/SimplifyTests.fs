@@ -9,8 +9,6 @@ open SFX.EventAggregation
 [<Trait("Category", "Unit")>]
 module SimplifyTests =
 
-    
-
     [<Fact>]
     let ``simplify of AS works``() =
         let subscriber (_: int) = ()
