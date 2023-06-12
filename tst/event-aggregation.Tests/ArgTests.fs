@@ -113,4 +113,3 @@ module ArgTests =
         match result |> withSerializationOfNotifications serializeNotification with
         | ASCS (_, x, y) when x = sc && y = serializeNotification -> Assert.True(true)
         | _ -> Assert.True(false)
-

@@ -62,4 +62,3 @@ module SimplifyTests =
         match result |> simplify with
         | ASC _ -> Assert.True(true)
         | _ -> Assert.True(false)
-

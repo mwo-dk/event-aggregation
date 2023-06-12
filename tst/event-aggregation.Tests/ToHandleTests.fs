@@ -44,4 +44,3 @@ module ToHandleTests =
         match result with
         | H _ -> Assert.True(true)
         | _ -> Assert.True(false)
-
