@@ -26,8 +26,8 @@
 	
 	<ItemGroup>
 		<Compile Include="Library.fs" />
-		<None Include="README.md" Pack="true" PackagePath="\"/>
-		<None Include="README.CS.md" Pack="true" PackagePath="\"/>
+		<None Include="README.md" Pack="true" PackagePath="../.."/>
+		<None Include="README.CS.md" Pack="true" PackagePath="../.."/>
 	</ItemGroup>
 
 	<ItemGroup>
