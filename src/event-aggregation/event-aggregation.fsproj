@@ -18,6 +18,8 @@
 
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReadmeFile>README.CS.md</PackageReadmeFile>
+
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
